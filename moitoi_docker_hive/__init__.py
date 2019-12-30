@@ -2,7 +2,7 @@
 
 __author__ = """Andres Kepler"""
 __email__ = 'andres@kepler.ee'
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 import logging.config
 import uuid
