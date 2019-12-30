@@ -1,0 +1,52 @@
+version: '3'
+
+services:
+  mdh_lb:
+    build: moitoi_docker_hive/assets/lb
+    ports:
+      - "5000:5000"
+    links:
+      - mdh_backend1
+    volumes:
+        - data:/data
+    networks:
+        - default
+    depends_on:
+      - mdh_backend1
+  mdh_elsa:
+    build: moitoi_docker_hive/assets/elsa
+    volumes:
+        - data:/data
+    networks:
+        - default
+    depends_on:
+      - mdh_lb
+  mdh_prom:
+    build: moitoi_docker_hive/assets/prom
+    volumes:
+        - data:/data
+    networks:
+        - default
+    depends_on:
+      - mdh_lb
+  mdh_grafana:
+    build: moitoi_docker_hive/assets/grafana
+    links:
+      - mdh_prom
+    volumes:
+        - data:/data
+    networks:
+        - default
+    depends_on:
+      - mdh_lb
+      - mdh_prom
+  mdh_backend1:
+    build: moitoi_docker_hive/assets/backend
+    networks:
+        - default
+
+volumes:
+  data:
+
+networks:
+    default:

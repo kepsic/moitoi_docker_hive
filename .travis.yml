@@ -1,0 +1,17 @@
+language: python
+python:
+- 3.8
+- 3.7
+- 3.6
+install: pip install -U tox-travis
+script: tox
+deploy:
+  provider: pypi
+  distributions: sdist bdist_wheel
+  user: "__token__"
+  password:
+    secure: cjtQxGp43+l7fiEI3h2BoCfL5Q4YlraCVbBB2G8gWUMpMCKl7UjGIpArw5MEIGJSAp1dEQzDrzAJA02rC3I+1JPpWL9oMebb9lqG6MN2AU3yYZBxfChEzDt4J84OV1YbJF6CVzdo4lZwdgrYqY/2+pbukYQyq+7fx5+zfU6CBhnGa1tIE9QX71jh6eJ7iaMFLcS1LC1vTGOdwQIqn0iT+2N/s9lZ9Kqt/JBk9HWaHibBTFGRnI8ATPBm5SKiTsWoScRq6LfyuQS26FVE5/3v/jt2HW7rRpIW4yx9+4wsVmjC0e5UXvG6pVW7HR7nPtrQsgYv7QT7j3HL6F8zt34++6hpfZcojMbM8lm8Gh2jos0bpqhC65WzMxJNZUAY/TPc4zAKpT2Ryn24mMDU0zfrWPe4XsQiqIA+mXqZ6snXi/bm2n3U3avuZM63aHpt/u9rpyfOAk9acInY0t+anjVHs5lol3cVEomUUvFxrz0T5BZQdd9FkltwGUzi3nqm36pblUPzir2V8IPcPvbukVDL76Nkj8AEIQU450uQ3BvK2sp/Lj9k+8gkJktu9b4IQu8Tfo8vI7DUcTWibKqRYwOAzWtHEIpQ9ipApV1LU08ol/uF/0kWen6H5Rix2a3L2Lz/XazpS/J032bwizV4z1i8a38At/9mxBfHOrx0Rh9epSE=
+  on:
+    tags: true
+    repo: kepsic/moitoi_docker_hive
+    python: 3.8

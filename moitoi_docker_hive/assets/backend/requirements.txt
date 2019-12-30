@@ -1,0 +1,6 @@
+Flask==0.10.1
+Werkzeug==0.10.4
+gunicorn==20.0.4
+flask-bootstrap
+flask-nav
+Flask-WTF
