@@ -1,5 +1,7 @@
 language: python
 python:
+- 3.8
+- 3.7
 - 3.6
 install: pip install -U tox-travis
 script: tox
@@ -12,4 +14,4 @@ deploy:
   on:
     tags: true
     repo: kepsic/moitoi_docker_hive
-    python: 3.6
+    python: 3.8
