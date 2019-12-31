@@ -5,6 +5,8 @@ import time
 
 import docker
 import crossplane
+from .main import ClusterHandler
+from .models import Args
 
 NGINX_CONFIG_FILE = "/data/etc/nginx/nginx.conf"
 PROM_TARGET_FILE = "/data/prometheus/targets.json"
@@ -219,18 +221,21 @@ def elsa_docker_event_worker():
 def elsa_health_check_worker():
     logging.info("Elsa health worker is  alive!")
     logging.info("Cluster ID: {}".format(os.environ.get("MDH_CLUSTER_ID")))
-    statuses = ["exited", "killed"]
 
     cli = docker.from_env()
     while True:
         mdh_cluster_id = os.environ.get("MDH_CLUSTER_ID", "ENV_NOT_SET")
         containers = cli.containers.list(
             filters={"label": ["mdh_backend=true", "mdh_cluster_id={}".format(mdh_cluster_id)]})
+        handler = ClusterHandler(Args(cluster_id=mdh_cluster_id))
         for container in containers:
             backend_nr = container.labels.get('mdh_backend_member_nr')
             backend_name = "mdh_backend{}".format(backend_nr)
-            if container.status in statuses and backend_nr:
+            if container.status != "running" and backend_nr:
                 remove_backend_from_nginx_conf(dict(mdh_backend=backend_name,
                                                     mdh_backend_port=os.environ.get("MDH_BACKEND_PORT", 5000)))
                 remove_prom_target(backend_name)
+                handler.prepare()
+                if handler.mdh_backends == 0:
+                    handler.add_node_to_cluster()
         time.sleep(30)

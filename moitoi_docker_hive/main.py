@@ -1,7 +1,7 @@
 """Main module."""
+import argparse
 import logging
 import os
-from argparse import ArgumentParser
 
 from paramiko import RSAKey
 import docker
@@ -409,7 +409,7 @@ class ClusterHandler:
         """
         res = []
         clusters = self._show_all_mdh_cluster_ids()
-        if isinstance(self.args, ArgumentParser):
+        if isinstance(self.args, argparse.Namespace):
             print("Cluster ID\t\t\t\tContainer Name\t\t\t\t\t\t\tContainer ID")
         if self.cluster_id not in clusters or show_all:
             for cluster_id in clusters:
@@ -417,7 +417,7 @@ class ClusterHandler:
                 for container in list(filter(lambda x: x.get("Labels").get("mdh_cluster_id", "not_set") == cluster_id,
                                              self.docker_client.api.containers())):
                     containers.append(container)
-                    if isinstance(self.args, ArgumentParser):
+                    if isinstance(self.args, argparse.Namespace):
                         print("{}\t{}\t{}".format(container.get("Labels").get("mdh_cluster_id"),
                                                   container.get("Names")[0].split("/")[1],
                                                   container.get("Id")))
@@ -426,7 +426,7 @@ class ClusterHandler:
         else:
             for container in list(filter(lambda x: x.get("Labels").get("mdh_cluster_id", "not_set") == self.cluster_id,
                                          self.docker_client.api.containers())):
-                if isinstance(self.args, ArgumentParser):
+                if isinstance(self.args, argparse.Namespace):
                     print("{}\t{}\t{}".format(container.get("Labels").get("mdh_cluster_id"),
                                               container.get("Names")[0].split("/")[1], container.get("Id")))
                 res.append(container)
@@ -482,7 +482,6 @@ class ClusterHandler:
         """
         clusters = self._show_all_mdh_cluster_ids()
         if self.cluster_id not in clusters:
-            print("--cluster-id is missing")
             return False
         self.cluster_network = self._get_or_create_network()[0]
         self.cluster_data_volume = {self._get_or_create_data_volume()[0].attrs['Name']: {'bind': '/data', 'mode': 'rw'}}
@@ -496,9 +495,13 @@ class ClusterHandler:
         if "init" in getattr(self.args, "cmd"):
             self.setup_cluster_infra()
         elif "show" in getattr(self.args, "cmd"):
-            self.show_cluster()
+            if not self.prepare():
+                self.show_cluster(show_all=True)
+            else:
+                self.show_cluster()
         elif "delete" in getattr(self.args, "cmd"):
-            self.remove_cluster()
+            if self.prepare():
+                self.remove_cluster()
         elif "+" in getattr(self.args, "cmd"):
             if self.prepare():
                 self.add_node_to_cluster()
@@ -507,16 +510,39 @@ class ClusterHandler:
                 self.remove_node_from_cluster()
 
     def remove_cluster(self):
-        """ Removes all instances from cluster
+        """ Removes all instances in cluster
 
         Returns (list): Removed containers statuses
 
         """
         res = []
         clusters = self._show_all_mdh_cluster_ids()
-        if len(clusters) == 1 and not isinstance(self.args, ArgumentParser):
-            if clusters[0] == self.cluster_id:
+        if len(clusters) == 1 and not isinstance(self.args, argparse.Namespace):
+            if self.cluster_id not in clusters:
                 return res
         for container in self.show_cluster():
-            res.append({"stop": container.stop(), "remove": container.remove()})
+            container_id = container.get("Id")
+            if container_id:
+                logging.info("Removing {}".format(container_id))
+                _container = self.docker_client.containers.get(container.get("Id"))
+                res.append({"stop": _container.stop()})
+                res.append({"remove": _container.remove()})
         return res
+
+    def stop_cluster(self):
+        """ Stops all instances in cluster
+
+        Returns (list): Removed containers statuses
+
+        """
+        res = []
+        clusters = self._show_all_mdh_cluster_ids()
+        if len(clusters) == 1 and not isinstance(self.args, argparse.Namespace):
+            if self.cluster_id not in clusters:
+                return res
+        for container in self.show_cluster():
+            logging.info("Stopping {}".format(container.get("Id")))
+            _container = self.docker_client.containers.get(container.get("Id"))
+            res.append({"stop": _container.stop()})
+        return res
+

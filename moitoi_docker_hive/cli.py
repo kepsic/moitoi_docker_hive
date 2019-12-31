@@ -13,7 +13,7 @@ from .main import ClusterHandler
 def parse_args():
     """Console script for moitoi_docker_hive."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('cmd', nargs='*', choices=["init", "show", "+", "-"], help='Cluster commands')
+    parser.add_argument('cmd', nargs='*', choices=["init", "show", "stop", "delete", "+", "-"], help='Cluster commands')
     parser.add_argument('--private-key', default="{}/id_rsa".format(DEFAULT_CONFIG_DIR),
                         help='ssh private key location')
     parser.add_argument('--public-key', default="{}/id_rsa.pub".format(DEFAULT_CONFIG_DIR),
