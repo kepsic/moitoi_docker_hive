@@ -4,7 +4,7 @@ Usage
 
 To use MoiToi Docker Hive in a python project::
 
-    import moitoi_docker_hive
+    from moitoi_docker_hive import ClusterHandler
     handler = ClusterHandler()
     handler.setup_cluster_infra()
 
